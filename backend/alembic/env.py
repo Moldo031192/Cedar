@@ -9,6 +9,7 @@ sys.path.append(os.getcwd())
 
 from app.db.session import Base  # noqa: E402
 from app.models.organization import Organization  # noqa: F401, E402
+from app.models.department import Department  # noqa: F401, E402
 
 config = context.config
 

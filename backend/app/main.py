@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.organizations import router as organizations_router
+from app.routers.departments import router as departments_router
 
 app = FastAPI(title="Cedar Platform API")
 
@@ -14,6 +15,7 @@ app.add_middleware(
 )
 
 app.include_router(organizations_router)
+app.include_router(departments_router)
 
 
 @app.get("/health")
