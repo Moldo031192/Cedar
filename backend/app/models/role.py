@@ -1,20 +1,26 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, Boolean, DateTime, func
+from sqlalchemy import String, Text, Boolean, DateTime, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
 
 
-class Organization(Base):
-    __tablename__ = "organizations"
+class Role(Base):
+    __tablename__ = "roles"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
+    )
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     code: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
@@ -32,5 +38,4 @@ class Organization(Base):
         onupdate=func.now(),
     )
 
-    departments = relationship("Department", back_populates="organization", cascade="all, delete-orphan")
-    roles = relationship("Role", back_populates="organization", cascade="all, delete-orphan")
+    organization = relationship("Organization", back_populates="roles")
