@@ -5,6 +5,7 @@ from app.routers.organizations import router as organizations_router
 from app.routers.departments import router as departments_router
 from app.routers.roles import router as roles_router
 from app.routers.qualifications import router as qualifications_router
+from app.routers.employees import router as employees_router
 
 app = FastAPI(title="Cedar Platform API")
 
@@ -20,6 +21,7 @@ app.include_router(organizations_router)
 app.include_router(departments_router)
 app.include_router(roles_router)
 app.include_router(qualifications_router)
+app.include_router(employees_router)
 
 
 @app.get("/health")

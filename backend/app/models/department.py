@@ -39,3 +39,4 @@ class Department(Base):
     )
 
     organization = relationship("Organization", back_populates="departments")
+    employees = relationship("Employee", back_populates="department", cascade="all, delete-orphan")
