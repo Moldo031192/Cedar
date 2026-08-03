@@ -41,3 +41,8 @@ class Qualification(Base):
     )
 
     organization = relationship("Organization", back_populates="qualifications")
+    employee_qualifications = relationship(
+        "EmployeeQualification",
+        back_populates="qualification",
+        cascade="all, delete-orphan",
+    )

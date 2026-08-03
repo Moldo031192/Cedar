@@ -31,4 +31,12 @@ class Role(Base):
         nullable=False,
         server_default=func.now(),
     )
-    updated_at
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    organization = relationship("Organization", back_populates="roles")
+    employees = relationship("Employee", back_populates="role", cascade="all, delete-orphan")
