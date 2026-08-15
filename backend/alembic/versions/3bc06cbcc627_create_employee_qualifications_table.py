@@ -1,20 +1,21 @@
-from alembic import op
+﻿from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
 revision = "3bc06cbcc627"
-down_revision = "a14d46e05aea"
+down_revision = "f1a9c3d2b7e4"
 branch_labels = None
 depends_on = None
 
 
-employee_qualification_status_enum = sa.Enum(
+employee_qualification_status_enum = postgresql.ENUM(
     "ACTIVE",
     "EXPIRED",
     "SUSPENDED",
     name="employee_qualification_status_enum",
+    create_type=False,
 )
 
 

@@ -1,4 +1,4 @@
-from alembic import op
+﻿from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
@@ -10,19 +10,21 @@ branch_labels = None
 depends_on = None
 
 
-demand_task_type_enum = sa.Enum(
+demand_task_type_enum = postgresql.ENUM(
     "DEBOARDING",
     "BOARDING",
     "TURNAROUND",
     name="demand_task_type_enum",
+    create_type=False,
 )
 
-demand_task_status_enum = sa.Enum(
+demand_task_status_enum = postgresql.ENUM(
     "PLANNED",
     "IN_PROGRESS",
     "COMPLETED",
     "CANCELLED",
     name="demand_task_status_enum",
+    create_type=False,
 )
 
 

@@ -1,4 +1,4 @@
-from alembic import op
+﻿from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
@@ -10,11 +10,12 @@ branch_labels = None
 depends_on = None
 
 
-employment_type_enum = sa.Enum(
+employment_type_enum = postgresql.ENUM(
     "FULL_TIME",
     "PART_TIME",
     "CONTRACT",
     name="employment_type_enum",
+    create_type=False,
 )
 
 
