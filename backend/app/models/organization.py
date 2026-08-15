@@ -16,15 +16,36 @@ class Organization(Base):
         primary_key=True,
         default=uuid.uuid4,
     )
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    code: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    code: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
     )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -32,8 +53,38 @@ class Organization(Base):
         onupdate=func.now(),
     )
 
-    departments = relationship("Department", back_populates="organization", cascade="all, delete-orphan")
-    roles = relationship("Role", back_populates="organization", cascade="all, delete-orphan")
-    qualifications = relationship("Qualification", back_populates="organization", cascade="all, delete-orphan")
-    employees = relationship("Employee", back_populates="organization", cascade="all, delete-orphan")
-    demand_tasks = relationship("DemandTask", back_populates="organization", cascade="all, delete-orphan")
+    departments = relationship(
+        "Department",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    roles = relationship(
+        "Role",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    qualifications = relationship(
+        "Qualification",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    employees = relationship(
+        "Employee",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    demand_tasks = relationship(
+        "DemandTask",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )
+
+    shifts = relationship(
+        "Shift",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+    )

@@ -8,16 +8,21 @@ from app.routers.qualifications import router as qualifications_router
 from app.routers.employees import router as employees_router
 from app.routers.employee_qualifications import router as employee_qualifications_router
 from app.routers.demand_tasks import router as demand_tasks_router
+from app.routers.demand_calculator import router as demand_calculator_router
+from app.routers.workforce_coverage import router as workforce_coverage_router
+
 
 app = FastAPI(title="Cedar Platform API")
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["[localhost](http://localhost:5173)"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 app.include_router(organizations_router)
 app.include_router(departments_router)
@@ -26,6 +31,8 @@ app.include_router(qualifications_router)
 app.include_router(employees_router)
 app.include_router(employee_qualifications_router)
 app.include_router(demand_tasks_router)
+app.include_router(demand_calculator_router)
+app.include_router(workforce_coverage_router)
 
 
 @app.get("/health")
