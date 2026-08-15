@@ -14,6 +14,7 @@ from app.models.role import Role  # noqa: F401, E402
 from app.models.qualification import Qualification  # noqa: F401, E402
 from app.models.employee import Employee  # noqa: F401, E402
 from app.models.employee_qualification import EmployeeQualification  # noqa: F401, E402
+from app.models.demand_task import DemandTask  # noqa: F401, E402
 
 config = context.config
 
