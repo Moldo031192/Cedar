@@ -30,13 +30,17 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 
-config.set_main_option(
-    "sqlalchemy.url",
-    os.getenv(
-        "DATABASE_URL",
-        config.get_main_option("sqlalchemy.url"),
-    ),
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL environment variable is required to run Alembic and "
+        "was not set. No default host/port is assumed, because the correct "
+        "value differs between Full Docker (db:5432) and Hybrid development "
+        "(127.0.0.1:5433). See backend/.env.example."
+    )
+
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 
 target_metadata = Base.metadata
