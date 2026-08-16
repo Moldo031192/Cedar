@@ -183,6 +183,59 @@ def make_employee(client, make_organization, make_department, make_role):
 
 
 @pytest.fixture()
+def make_qualification(client, make_organization):
+    def _make(
+        organization_id=None,
+        code="QUAL-1",
+        name="Test Qualification",
+        requires_expiration=False,
+        default_validity_months=None,
+    ):
+        if organization_id is None:
+            organization_id = make_organization()["id"]
+
+        payload = {
+            "organization_id": organization_id,
+            "name": name,
+            "code": code,
+            "requires_expiration": requires_expiration,
+        }
+        if default_validity_months is not None:
+            payload["default_validity_months"] = default_validity_months
+
+        response = client.post("/qualifications", json=payload)
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _make
+
+
+@pytest.fixture()
+def make_employee_qualification(client):
+    def _make(
+        employee_id,
+        qualification_id,
+        status="ACTIVE",
+        obtained_at="2026-01-01",
+        expires_at=None,
+    ):
+        payload = {
+            "employee_id": employee_id,
+            "qualification_id": qualification_id,
+            "obtained_at": obtained_at,
+            "status": status,
+        }
+        if expires_at is not None:
+            payload["expires_at"] = expires_at
+
+        response = client.post("/employee-qualifications", json=payload)
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _make
+
+
+@pytest.fixture()
 def make_demand_task(client, make_organization):
     def _make(
         organization_id=None,
@@ -192,22 +245,24 @@ def make_demand_task(client, make_organization):
         duration_minutes=60,
         target_headcount=10,
         minimum_headcount=8,
+        required_qualification_ids=None,
     ):
         if organization_id is None:
             organization_id = make_organization()["id"]
 
-        response = client.post(
-            "/demand-tasks",
-            json={
-                "organization_id": organization_id,
-                "flight_reference": flight_reference,
-                "task_type": task_type,
-                "start_time": start_time,
-                "duration_minutes": duration_minutes,
-                "target_headcount": target_headcount,
-                "minimum_headcount": minimum_headcount,
-            },
-        )
+        payload = {
+            "organization_id": organization_id,
+            "flight_reference": flight_reference,
+            "task_type": task_type,
+            "start_time": start_time,
+            "duration_minutes": duration_minutes,
+            "target_headcount": target_headcount,
+            "minimum_headcount": minimum_headcount,
+        }
+        if required_qualification_ids is not None:
+            payload["required_qualification_ids"] = required_qualification_ids
+
+        response = client.post("/demand-tasks", json=payload)
         assert response.status_code == 201, response.text
         return response.json()
 
