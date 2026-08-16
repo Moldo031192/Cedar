@@ -180,3 +180,35 @@ def make_employee(client, make_organization, make_department, make_role):
         return response.json()
 
     return _make
+
+
+@pytest.fixture()
+def make_demand_task(client, make_organization):
+    def _make(
+        organization_id=None,
+        flight_reference="FL-100",
+        task_type="TURNAROUND",
+        start_time="2026-01-01T08:00:00Z",
+        duration_minutes=60,
+        target_headcount=10,
+        minimum_headcount=8,
+    ):
+        if organization_id is None:
+            organization_id = make_organization()["id"]
+
+        response = client.post(
+            "/demand-tasks",
+            json={
+                "organization_id": organization_id,
+                "flight_reference": flight_reference,
+                "task_type": task_type,
+                "start_time": start_time,
+                "duration_minutes": duration_minutes,
+                "target_headcount": target_headcount,
+                "minimum_headcount": minimum_headcount,
+            },
+        )
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _make

@@ -94,7 +94,28 @@ def test_update_qualification_expiration_rule_enforced(client, make_organization
         f"/qualifications/{created['id']}",
         json={"requires_expiration": True},
     )
-    assert response.status_code == 400
+    # Milestone 4C: normalized to 422, consistent with the same rule at create.
+    assert response.status_code == 422
+
+
+def test_update_qualification_expiration_rule_enforced_other_direction(client, make_organization):
+    org = make_organization(code="ORG-QUAL-7")
+    created = client.post(
+        "/qualifications",
+        json={
+            "organization_id": org["id"],
+            "name": "Update Rule Qual Other Direction",
+            "code": "QUAL-UPDATE-RULE-2",
+            "requires_expiration": True,
+            "default_validity_months": 12,
+        },
+    ).json()
+
+    response = client.put(
+        f"/qualifications/{created['id']}",
+        json={"requires_expiration": False},
+    )
+    assert response.status_code == 422
 
 
 def test_delete_qualification(client, make_organization):

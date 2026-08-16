@@ -95,13 +95,13 @@ def update_qualification(
 
     if new_requires_expiration and new_default_validity_months is None:
         raise HTTPException(
-            status_code=400,
+            status_code=422,
             detail="default_validity_months is required when requires_expiration is true",
         )
 
     if not new_requires_expiration and new_default_validity_months is not None:
         raise HTTPException(
-            status_code=400,
+            status_code=422,
             detail="default_validity_months must be null when requires_expiration is false",
         )
 

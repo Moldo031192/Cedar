@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Iterable
 
 from app.models.demand_task import DemandTask
 from app.models.employee import Employee
+from app.models.employee_qualification import EmployeeQualificationStatus
 
 
 def calculate_workforce_coverage(
@@ -20,10 +21,18 @@ def calculate_workforce_coverage(
 
     Qualification matching is evaluated per employee against the
     qualifications required by the active task(s).
+
+    Eligibility rule (Milestone 4B): an EmployeeQualification only counts
+    toward eligibility if status == ACTIVE and expires_at is either null
+    or not in the past, evaluated against the current server date
+    (date.today()) - not against the task's window_start. This reflects
+    the qualification's current operational state, not its historical
+    validity at some other point in time.
     """
 
     tasks = list(tasks)
     employees = list(employees)
+    today = date.today()
 
     active_tasks = [
         task
@@ -39,6 +48,11 @@ def calculate_workforce_coverage(
         employee_qualification_ids = {
             employee_qualification.qualification_id
             for employee_qualification in employee.employee_qualifications
+            if employee_qualification.status == EmployeeQualificationStatus.ACTIVE
+            and (
+                employee_qualification.expires_at is None
+                or employee_qualification.expires_at >= today
+            )
         }
 
         required_qualification_ids = set()

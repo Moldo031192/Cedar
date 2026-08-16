@@ -1,5 +1,5 @@
 ﻿import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 from pydantic import ValidationError
@@ -48,6 +48,42 @@ def _make_employee(employee_number="EMP-1", qualifications=None):
             status=EmployeeQualificationStatus.ACTIVE,
         )
         for qualification in (qualifications or [])
+    ]
+    return employee
+
+
+def _make_employee_with_qualification_status(
+    qualification,
+    status,
+    expires_at=None,
+    employee_number="EMP-1",
+):
+    """
+    Milestone 4B helper: builds a single employee holding exactly one
+    EmployeeQualification with an explicit status and expires_at, so
+    eligibility rule edge cases can be tested precisely.
+    """
+    employee = Employee(
+        id=uuid.uuid4(),
+        organization_id=uuid.uuid4(),
+        department_id=uuid.uuid4(),
+        role_id=uuid.uuid4(),
+        employee_number=employee_number,
+        first_name="Ana",
+        last_name="Pop",
+        email=f"{employee_number.lower()}@example.com",
+        employment_type=EmploymentType.FULL_TIME,
+        hire_date=date(2026, 1, 1),
+        is_active=True,
+    )
+    employee.employee_qualifications = [
+        EmployeeQualification(
+            employee_id=employee.id,
+            qualification_id=qualification.id,
+            obtained_at=date(2026, 1, 1),
+            expires_at=expires_at,
+            status=status,
+        )
     ]
     return employee
 
@@ -195,3 +231,137 @@ def test_end_time_must_be_after_start_time():
             start_time=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),
             end_time=datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc),
         )
+
+
+# --- Milestone 4B: qualification validity / eligibility rule ---
+
+
+def test_eligible_active_no_expiration():
+    window_start = datetime(2026, 1, 1, 8, 0, tzinfo=timezone.utc)
+    window_end = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+
+    forklift = _make_qualification("FORKLIFT")
+    task = _make_task(start_time=window_start, duration_minutes=60, required_qualifications=[forklift])
+    employee = _make_employee_with_qualification_status(
+        forklift, status=EmployeeQualificationStatus.ACTIVE, expires_at=None
+    )
+
+    _, eligible = calculate_workforce_coverage(
+        tasks=[task],
+        employees=[employee],
+        window_start=window_start,
+        window_end=window_end,
+        available_headcount=14,
+    )
+
+    assert eligible[0]["eligible"] is True
+
+
+def test_eligible_active_expires_in_future():
+    window_start = datetime(2026, 1, 1, 8, 0, tzinfo=timezone.utc)
+    window_end = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+
+    forklift = _make_qualification("FORKLIFT")
+    task = _make_task(start_time=window_start, duration_minutes=60, required_qualifications=[forklift])
+    employee = _make_employee_with_qualification_status(
+        forklift,
+        status=EmployeeQualificationStatus.ACTIVE,
+        expires_at=date.today() + timedelta(days=1),
+    )
+
+    _, eligible = calculate_workforce_coverage(
+        tasks=[task],
+        employees=[employee],
+        window_start=window_start,
+        window_end=window_end,
+        available_headcount=14,
+    )
+
+    assert eligible[0]["eligible"] is True
+
+
+def test_eligible_active_expires_today():
+    window_start = datetime(2026, 1, 1, 8, 0, tzinfo=timezone.utc)
+    window_end = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+
+    forklift = _make_qualification("FORKLIFT")
+    task = _make_task(start_time=window_start, duration_minutes=60, required_qualifications=[forklift])
+    employee = _make_employee_with_qualification_status(
+        forklift, status=EmployeeQualificationStatus.ACTIVE, expires_at=date.today()
+    )
+
+    _, eligible = calculate_workforce_coverage(
+        tasks=[task],
+        employees=[employee],
+        window_start=window_start,
+        window_end=window_end,
+        available_headcount=14,
+    )
+
+    assert eligible[0]["eligible"] is True
+
+
+def test_ineligible_active_but_expired():
+    window_start = datetime(2026, 1, 1, 8, 0, tzinfo=timezone.utc)
+    window_end = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+
+    forklift = _make_qualification("FORKLIFT")
+    task = _make_task(start_time=window_start, duration_minutes=60, required_qualifications=[forklift])
+    employee = _make_employee_with_qualification_status(
+        forklift,
+        status=EmployeeQualificationStatus.ACTIVE,
+        expires_at=date.today() - timedelta(days=1),
+    )
+
+    _, eligible = calculate_workforce_coverage(
+        tasks=[task],
+        employees=[employee],
+        window_start=window_start,
+        window_end=window_end,
+        available_headcount=14,
+    )
+
+    assert eligible[0]["eligible"] is False
+    assert eligible[0]["missing_qualification_ids"] == [forklift.id]
+
+
+def test_ineligible_status_expired():
+    window_start = datetime(2026, 1, 1, 8, 0, tzinfo=timezone.utc)
+    window_end = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+
+    forklift = _make_qualification("FORKLIFT")
+    task = _make_task(start_time=window_start, duration_minutes=60, required_qualifications=[forklift])
+    employee = _make_employee_with_qualification_status(
+        forklift, status=EmployeeQualificationStatus.EXPIRED, expires_at=None
+    )
+
+    _, eligible = calculate_workforce_coverage(
+        tasks=[task],
+        employees=[employee],
+        window_start=window_start,
+        window_end=window_end,
+        available_headcount=14,
+    )
+
+    assert eligible[0]["eligible"] is False
+
+
+def test_ineligible_status_suspended():
+    window_start = datetime(2026, 1, 1, 8, 0, tzinfo=timezone.utc)
+    window_end = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
+
+    forklift = _make_qualification("FORKLIFT")
+    task = _make_task(start_time=window_start, duration_minutes=60, required_qualifications=[forklift])
+    employee = _make_employee_with_qualification_status(
+        forklift, status=EmployeeQualificationStatus.SUSPENDED, expires_at=None
+    )
+
+    _, eligible = calculate_workforce_coverage(
+        tasks=[task],
+        employees=[employee],
+        window_start=window_start,
+        window_end=window_end,
+        available_headcount=14,
+    )
+
+    assert eligible[0]["eligible"] is False

@@ -53,6 +53,18 @@ class DemandTaskUpdate(BaseModel):
     status: DemandTaskStatus | None = None
     required_qualification_ids: list[uuid.UUID] | None = None
 
+    @model_validator(mode="after")
+    def validate_non_negative_headcounts(self):
+        # Mirrors the non-negativity rule from DemandTaskCreate, but only
+        # for fields actually supplied in this partial update - fields left
+        # unset (None) are intentionally not touched, preserving the
+        # existing partial-update semantics.
+        if self.target_headcount is not None and self.target_headcount < 0:
+            raise ValueError("target_headcount cannot be negative")
+        if self.minimum_headcount is not None and self.minimum_headcount < 0:
+            raise ValueError("minimum_headcount cannot be negative")
+        return self
+
 
 class DemandTaskResponse(BaseModel):
     id: uuid.UUID
