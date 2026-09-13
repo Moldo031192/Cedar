@@ -6,6 +6,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -16,6 +17,9 @@ from app.db.session import Base
 
 class EmployeeShift(Base):
     __tablename__ = "employee_shifts"
+    __table_args__ = (
+        UniqueConstraint("employee_id", "work_date", name="uq_employee_shifts_employee_id_work_date"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

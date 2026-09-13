@@ -30,6 +30,8 @@ from app.routers import employee_qualifications as employee_qualifications_route
 from app.routers import demand_tasks as demand_tasks_router  # noqa: E402
 from app.routers import demand_calculator as demand_calculator_router  # noqa: E402
 from app.routers import workforce_coverage as workforce_coverage_router  # noqa: E402
+from app.routers import shifts as shifts_router  # noqa: E402
+from app.routers import employee_shifts as employee_shifts_router  # noqa: E402
 
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
@@ -54,6 +56,8 @@ _ROUTER_MODULES_WITH_GET_DB = [
     demand_tasks_router,
     demand_calculator_router,
     workforce_coverage_router,
+    shifts_router,
+    employee_shifts_router,
 ]
 
 
@@ -263,6 +267,74 @@ def make_demand_task(client, make_organization):
             payload["required_qualification_ids"] = required_qualification_ids
 
         response = client.post("/demand-tasks", json=payload)
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _make
+
+
+@pytest.fixture()
+def make_shift(client, make_organization):
+    def _make(
+        organization_id=None,
+        code="SHIFT-1",
+        name="Test Shift",
+        start_time="06:00:00",
+        end_time="14:00:00",
+        crosses_midnight=False,
+        target_headcount=14,
+        support_headcount=0,
+    ):
+        if organization_id is None:
+            organization_id = make_organization()["id"]
+
+        response = client.post(
+            "/shifts",
+            json={
+                "organization_id": organization_id,
+                "name": name,
+                "code": code,
+                "start_time": start_time,
+                "end_time": end_time,
+                "crosses_midnight": crosses_midnight,
+                "target_headcount": target_headcount,
+                "support_headcount": support_headcount,
+            },
+        )
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _make
+
+
+@pytest.fixture()
+def make_employee_shift(client, make_organization, make_employee, make_shift):
+    def _make(
+        employee_id=None,
+        shift_id=None,
+        work_date="2026-01-01",
+        is_support=False,
+        is_present=True,
+        notes=None,
+    ):
+        if employee_id is None or shift_id is None:
+            organization_id = make_organization()["id"]
+            if employee_id is None:
+                employee_id = make_employee(organization_id=organization_id)["id"]
+            if shift_id is None:
+                shift_id = make_shift(organization_id=organization_id)["id"]
+
+        payload = {
+            "employee_id": employee_id,
+            "shift_id": shift_id,
+            "work_date": work_date,
+            "is_support": is_support,
+            "is_present": is_present,
+        }
+        if notes is not None:
+            payload["notes"] = notes
+
+        response = client.post("/employee-shifts", json=payload)
         assert response.status_code == 201, response.text
         return response.json()
 

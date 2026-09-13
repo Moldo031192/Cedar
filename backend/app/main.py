@@ -10,6 +10,8 @@ from app.routers.employee_qualifications import router as employee_qualification
 from app.routers.demand_tasks import router as demand_tasks_router
 from app.routers.demand_calculator import router as demand_calculator_router
 from app.routers.workforce_coverage import router as workforce_coverage_router
+from app.routers.shifts import router as shifts_router
+from app.routers.employee_shifts import router as employee_shifts_router
 
 
 app = FastAPI(title="Cedar Platform API")
@@ -33,6 +35,8 @@ app.include_router(employee_qualifications_router)
 app.include_router(demand_tasks_router)
 app.include_router(demand_calculator_router)
 app.include_router(workforce_coverage_router)
+app.include_router(shifts_router)
+app.include_router(employee_shifts_router)
 
 
 @app.get("/health")

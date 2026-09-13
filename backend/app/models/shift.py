@@ -8,6 +8,7 @@ from sqlalchemy import (
     Integer,
     String,
     Time,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -18,6 +19,9 @@ from app.db.session import Base
 
 class Shift(Base):
     __tablename__ = "shifts"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "code", name="uq_shifts_organization_id_code"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
